@@ -181,6 +181,9 @@
         <NamedIndividual IRI="#Standby"/>
     </Declaration>
     <Declaration>
+        <NamedIndividual IRI="#bathroom"/>
+    </Declaration>
+    <Declaration>
         <NamedIndividual IRI="#bedroom"/>
     </Declaration>
     <Declaration>
@@ -235,6 +238,9 @@
         <NamedIndividual IRI="#measurement_06"/>
     </Declaration>
     <Declaration>
+        <NamedIndividual IRI="#measurement_07"/>
+    </Declaration>
+    <Declaration>
         <NamedIndividual IRI="#sensor_bathroom"/>
     </Declaration>
     <Declaration>
@@ -242,6 +248,9 @@
     </Declaration>
     <Declaration>
         <NamedIndividual IRI="#sensor_corridor"/>
+    </Declaration>
+    <Declaration>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
     </Declaration>
     <Declaration>
         <NamedIndividual IRI="#sensor_entrance"/>
@@ -541,6 +550,10 @@
     </ClassAssertion>
     <ClassAssertion>
         <Class IRI="#Room"/>
+        <NamedIndividual IRI="#bathroom"/>
+    </ClassAssertion>
+    <ClassAssertion>
+        <Class IRI="#Room"/>
         <NamedIndividual IRI="#bedroom"/>
     </ClassAssertion>
     <ClassAssertion>
@@ -596,7 +609,7 @@
         <NamedIndividual IRI="#measurement_02"/>
     </ClassAssertion>
     <ClassAssertion>
-        <Class IRI="#MotionDetectedMeasurements"/>
+        <Class IRI="#MotionMeasurements"/>
         <NamedIndividual IRI="#measurement_03"/>
     </ClassAssertion>
     <ClassAssertion>
@@ -612,6 +625,10 @@
         <NamedIndividual IRI="#measurement_06"/>
     </ClassAssertion>
     <ClassAssertion>
+        <Class IRI="#HumidityMeasurements"/>
+        <NamedIndividual IRI="#measurement_07"/>
+    </ClassAssertion>
+    <ClassAssertion>
         <Class IRI="#Sensor"/>
         <NamedIndividual IRI="#sensor_bathroom"/>
     </ClassAssertion>
@@ -622,6 +639,10 @@
     <ClassAssertion>
         <Class IRI="#Sensor"/>
         <NamedIndividual IRI="#sensor_corridor"/>
+    </ClassAssertion>
+    <ClassAssertion>
+        <Class IRI="#Sensor"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
     </ClassAssertion>
     <ClassAssertion>
         <Class IRI="#Sensor"/>
@@ -645,6 +666,7 @@
         <NamedIndividual IRI="#Off"/>
         <NamedIndividual IRI="#On"/>
         <NamedIndividual IRI="#Standby"/>
+        <NamedIndividual IRI="#bathroom"/>
         <NamedIndividual IRI="#bedroom"/>
         <NamedIndividual IRI="#corridor"/>
         <NamedIndividual IRI="#entrance"/>
@@ -663,9 +685,11 @@
         <NamedIndividual IRI="#measurement_04"/>
         <NamedIndividual IRI="#measurement_05"/>
         <NamedIndividual IRI="#measurement_06"/>
+        <NamedIndividual IRI="#measurement_07"/>
         <NamedIndividual IRI="#sensor_bathroom"/>
         <NamedIndividual IRI="#sensor_bedroom"/>
         <NamedIndividual IRI="#sensor_corridor"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
         <NamedIndividual IRI="#sensor_entrance"/>
         <NamedIndividual IRI="#sensor_kitchen"/>
         <NamedIndividual IRI="#sensor_livingroom"/>
@@ -703,18 +727,23 @@
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isMonitoredBy"/>
+        <NamedIndividual IRI="#bathroom"/>
+        <NamedIndividual IRI="#sensor_bathroom"/>
+    </ObjectPropertyAssertion>
+    <ObjectPropertyAssertion>
+        <ObjectProperty IRI="#isMonitoredBy"/>
         <NamedIndividual IRI="#bedroom"/>
         <NamedIndividual IRI="#sensor_bedroom"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isMonitoredBy"/>
         <NamedIndividual IRI="#corridor"/>
-        <NamedIndividual IRI="#sensor_bathroom"/>
+        <NamedIndividual IRI="#sensor_corridor"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isMonitoredBy"/>
         <NamedIndividual IRI="#corridor"/>
-        <NamedIndividual IRI="#sensor_corridor"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isMonitoredBy"/>
@@ -764,7 +793,7 @@
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#hasStatus"/>
         <NamedIndividual IRI="#light_livingroom"/>
-        <NamedIndividual IRI="#On"/>
+        <NamedIndividual IRI="#Off"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isLocatedIn"/>
@@ -809,7 +838,7 @@
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isLocatedIn"/>
         <NamedIndividual IRI="#sensor_bathroom"/>
-        <NamedIndividual IRI="#corridor"/>
+        <NamedIndividual IRI="#bathroom"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#connectedTo"/>
@@ -849,6 +878,26 @@
     <ObjectPropertyAssertion>
         <ObjectProperty IRI="#isLocatedIn"/>
         <NamedIndividual IRI="#sensor_corridor"/>
+        <NamedIndividual IRI="#corridor"/>
+    </ObjectPropertyAssertion>
+    <ObjectPropertyAssertion>
+        <ObjectProperty IRI="#connectedTo"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
+        <NamedIndividual IRI="#home_zigbee"/>
+    </ObjectPropertyAssertion>
+    <ObjectPropertyAssertion>
+        <ObjectProperty IRI="#generates"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
+        <NamedIndividual IRI="#measurement_07"/>
+    </ObjectPropertyAssertion>
+    <ObjectPropertyAssertion>
+        <ObjectProperty IRI="#hasStatus"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
+        <NamedIndividual IRI="#On"/>
+    </ObjectPropertyAssertion>
+    <ObjectPropertyAssertion>
+        <ObjectProperty IRI="#isLocatedIn"/>
+        <NamedIndividual IRI="#sensor_corridor_humidity"/>
         <NamedIndividual IRI="#corridor"/>
     </ObjectPropertyAssertion>
     <ObjectPropertyAssertion>
@@ -990,6 +1039,16 @@
         <DataProperty IRI="#hasTimeStamp"/>
         <NamedIndividual IRI="#measurement_06"/>
         <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#dateTime">2026-03-15T10:30:00</Literal>
+    </DataPropertyAssertion>
+    <DataPropertyAssertion>
+        <DataProperty IRI="#hasHumidityValue"/>
+        <NamedIndividual IRI="#measurement_07"/>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#decimal">68.0</Literal>
+    </DataPropertyAssertion>
+    <DataPropertyAssertion>
+        <DataProperty IRI="#hasTimeStamp"/>
+        <NamedIndividual IRI="#measurement_07"/>
+        <Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#dateTime">2026-03-15T10:35:00</Literal>
     </DataPropertyAssertion>
     <DataPropertyAssertion>
         <DataProperty IRI="#hasDeviceName"/>

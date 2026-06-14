@@ -6,180 +6,203 @@
 
 ## Overview
 
-This project implements an **OWL ontology for a Smart Home IoT system**. The ontology models physical devices installed in rooms, the measurements they generate, and the users who interact with the system.
+This project contains an **OWL ontology for a smart home IoT system**. It models devices placed in rooms, the measurements they produce, the networks they use, and the users who can read or control parts of the system.
+
+The main focus is on two things:
+- how measurements are represented and linked to rooms
+- how user permissions are modeled in a simple but clear way
 
 ---
 
-## Domain and Motivation
+## Domain
 
-A smart home is modeled from the perspective of **sensor-driven monitoring and access control**. The domain covers:
+The ontology describes a small smart home environment with:
 
-- **Where** devices are installed: rooms and outdoor spaces
-- **What** they measure: temperature, motion, light, humidity
-- **What** they produce: typed measurement records with timestamps and numeric values
-- **Who** interacts with the system: admin users (full control) and guest users (read-only)
-- **How** devices communicate: over WiFi or Zigbee networks
-
-The ontology deliberately excludes automation scenes and hub controllers to focus on the **measurement pipeline** and **user privilege model** as its original contribution.
+- rooms and one outdoor space
+- sensors for temperature, motion, and humidity
+- actuators like lights, locks, and a thermostat
+- measurements with values and timestamps
+- users with different privileges
+- devices connected through WiFi or Zigbee
 
 ---
 
 ## Ontology Structure
 
-### Primitive Classes (13)
+### Main classes
 
-| Class | Description |
-|---|---|
-| `Device` | Any IoT device installed in the smart home |
-| `Sensor` | Device that measures and generates data |
-| `Actuator` | Device that performs physical actions |
-| `Thermostat`, `SmartLight`, `SmartLock` | Concrete actuator types |
-| `Room` | An indoor space in the home |
-| `OutdoorSpace` | An outdoor area (e.g. garden) |
-| `User` | A person interacting with the system |
-| `Measurements` | A data record produced by a sensor |
-| `CriticalTemperatureMeasurements` | Temperature reading above a safe threshold |
-| `WiFiNetwork`, `ZigbeeNetwork` | Communication protocol subtypes |
+The ontology includes the main branches `Device`, `Room`, `OutdoorSpace`, `User`, `Measurements`, `DeviceStatus`, and `Network`.
 
-### Defined Classes (14)
+Some relevant subclasses are:
+- `Sensor`, `Actuator`
+- `Thermostat`, `SmartLight`, `SmartLock`
+- `TemperatureMeasurements`, `MotionMeasurements`, `HumidityMeasurements`
+- `WiFiNetwork`, `ZigbeeNetwork`
 
-| Class | Definition | DL Construct |
-|---|---|---|
-| `TemperatureSensor` | `Sensor ⊓ ∃generates.TemperatureMeasurements` | Existential `∃` |
-| `LightSensor` | `Sensor ⊓ ∃generates.LightMeasurements` | Existential `∃` |
-| `MotionSensor` | `Sensor ⊓ ∃generates.MotionMeasurements` | Existential `∃` |
-| `HumiditySensor` | `Sensor ⊓ ∃generates.HumidityMeasurements` | Existential `∃` |
-| `MotionDetectedMeasurements` | `MotionMeasurements ⊓ ∃hasMotionIntensity.[≥1]` | Datatype Facet (OWL 2) |
-| `MonitoredRoom` | `Room ⊓ ∃isMonitoredBy.Sensor` | Existential `∃` |
-| `DangerousRoom` | `Room ⊓ ∃hasMeasurements.CriticalTemperatureMeasurements` | Existential `∃` |
-| `WellMonitoredRoom` | `Room ⊓ (≥2 isMonitoredBy Sensor)` | Min Cardinality `≥n` |
-| `SensorOnlyRoom` | `Room ⊓ ∃contains.Sensor ⊓ ∀contains.Sensor` | Universal `∀` + Existential |
-| `InactiveDevice` | `Device ⊓ hasStatus value Off` | HasValue |
-| `AdminUser` | `User ⊓ ∃controls.Actuator ⊓ ∃reads.Measurements ⊓ hasAdminPrivilege value true` | DataHasValue + `∃` |
-| `GuestUser` | `User ⊓ ∃reads.Measurements ⊓ hasAdminPrivilege value false` | DataHasValue |
-| `ConnectedDevice` | `Device ⊓ ∃connectedTo.Network` | Existential `∃` |
-| `DeviceStatus` | `{On, Off, Standby}` | Nominal `{...}` |
+### Defined classes
+
+Several classes are defined through logical conditions, for example:
+
+- `TemperatureSensor = Sensor ⊓ ∃generates.TemperatureMeasurements`
+- `MotionSensor = Sensor ⊓ ∃generates.MotionMeasurements`
+- `HumiditySensor = Sensor ⊓ ∃generates.HumidityMeasurements`
+- `MonitoredRoom = Room ⊓ ∃isMonitoredBy.Sensor`
+- `DangerousRoom = Room ⊓ ∃hasMeasurements.CriticalTemperatureMeasurements`
+- `WellMonitoredRoom = Room ⊓ (≥2 isMonitoredBy Sensor)`
+- `InactiveDevice = Device ⊓ hasStatus value Off`
+- `AdminUser = User ⊓ ∃controls.Actuator ⊓ ∃reads.Measurements ⊓ hasAdminPrivilege value true`
+- `GuestUser = User ⊓ ∃reads.Measurements ⊓ hasAdminPrivilege value false`
+- `ConnectedDevice = Device ⊓ ∃connectedTo.Network`
+
+`DeviceStatus` is modeled as a nominal: `{On, Off, Standby}`.
 
 ---
 
-### Object Properties (10)
+## Properties
 
-| Property | Domain | Range | Characteristics |
-|---|---|---|---|
-| `isLocatedIn` | `Device` | `Room` | **Transitive**, **Asymmetric**, Inverse: `contains` |
-| `contains` | `Room` | `Device` | Inverse: `isLocatedIn` |
-| `generates` | `Sensor` | `Measurements` | — |
-| `monitors` | `Sensor` | `Room` | Inverse: `isMonitoredBy` |
-| `isMonitoredBy` | `Room` | `Sensor` | Inverse: `monitors` |
-| `controls` | `User` | `Actuator` | — |
-| `reads` | `User` | `Measurements` | — |
-| `hasStatus` | `Device` | `DeviceStatus` | **Functional** |
-| `connectedTo` | `Device` | `Network` | — |
-| `hasMeasurements` | `Room` | `Measurements` | Inferred via **property chain** |
+### Object properties
 
-**Property Chain:** `contains ∘ generates ⊑ hasMeasurements`
-If a room *contains* a sensor that *generates* a measurement, the reasoner infers `hasMeasurements` automatically — this is what triggers `DangerousRoom` classification.
+Main object properties:
+
+- `isLocatedIn` / inverse `contains`
+- `generates`
+- `monitors` / inverse `isMonitoredBy`
+- `controls`
+- `reads`
+- `hasStatus`
+- `connectedTo`
+- `hasMeasurements`
+
+`hasStatus` is functional.
+
+`isLocatedIn` is modeled as **transitive** and **asymmetric**.
+
+### Property chain
+
+The ontology uses this property chain:
+
+`contains ∘ generates ⊑ hasMeasurements`
+
+So, if a room contains a sensor and that sensor generates a measurement, the room can be inferred to have that measurement.
+
+This is what allows the reasoner to classify a room like `kitchen` as a `DangerousRoom` when it is linked to a critical temperature measurement.
+
+### Data properties
+
+The ontology uses data properties such as:
+
+- `hasTemperatureValue`
+- `hasHumidityValue`
+- `hasLightValue`
+- `hasMotionIntensity`
+- `hasTimeStamp`
+- `hasDeviceName`
+- `hasIPAddress`
+- `hasAdminPrivilege`
+- `hasSSID`
+
+`hasAdminPrivilege` is functional.
 
 ---
 
-### Data Properties (9)
+## Disjointness axioms
 
-| Property | Domain | Range | Characteristics |
-|---|---|---|---|
-| `hasTemperatureValue` | `TemperatureMeasurements` | `xsd:decimal` | — |
-| `hasHumidityValue` | `HumidityMeasurements` | `xsd:decimal` | — |
-| `hasLightValue` | `LightMeasurements` | `xsd:decimal` | — |
-| `hasMotionIntensity` | `MotionMeasurements` | `xsd:integer` | — |
-| `hasTimeStamp` | `Measurements` | `xsd:dateTime` | — |
-| `hasDeviceName` | `Device` | `xsd:string` | — |
-| `hasIPAddress` | `Device` | `xsd:string` | — |
-| `hasAdminPrivilege` | `User` | `xsd:boolean` | **Functional** |
-| `hasSSID` | `Network` | `xsd:string` | — |
+The ontology includes:
+
+- `DisjointUnion(Device Actuator Sensor)`
+- disjointness among top-level branches
+- disjointness among sensor subtypes
+- disjointness among actuator subtypes
+- `AdminUser ⊥ GuestUser`
+- `WiFiNetwork ⊥ ZigbeeNetwork`
 
 ---
 
-### Disjointness Axioms
+## ABox individuals
 
-- **DisjointUnion** on `Device`: every Device is exactly one of `Sensor` or `Actuator`.
-- **DisjointClasses** among all top-level branches: `Device`, `Room`, `OutdoorSpace`, `User`, `Measurements`, `DeviceStatus`, `Network`.
-- **DisjointClasses** among all `Sensor` subtypes and among all `Actuator` subtypes.
-- **DisjointClasses**: `AdminUser ⊥ GuestUser`, `WiFiNetwork ⊥ ZigbeeNetwork`.
+The ontology currently contains **33 individuals**.
 
----
+### Rooms and spaces
 
-## ABox — Individuals (29)
-
-### Rooms and Spaces
-
-| Individual | Type | Notable facts |
-|---|---|---|
-| `kitchen` | `Room` | Monitored by `sensor_kitchen` |
-| `livingroom` | `Room` | Monitored by `sensor_livingroom` |
-| `corridor` | `Room` | Monitored by `sensor_corridor` + `sensor_bathroom` (→ `WellMonitoredRoom`) |
-| `bedroom` | `Room` | Monitored by `sensor_bedroom` |
-| `entrance` | `Room` | Monitored by `sensor_entrance` |
-| `garden` | `OutdoorSpace` | Outdoor area |
+- `kitchen`
+- `livingroom`
+- `corridor`
+- `bedroom`
+- `entrance`
+- `bathroom`
+- `garden`
 
 ### Sensors
 
-| Individual | Asserted type | Inferred type | Measurement generated |
-|---|---|---|---|
-| `sensor_kitchen` | `Sensor` | `TemperatureSensor`  | `measurement_01` (CriticalTemp, 38.5°C) |
-| `sensor_livingroom` | `Sensor` | `TemperatureSensor`  | `measurement_02` (Temp, 22.0°C) |
-| `sensor_corridor` | `Sensor` | `MotionSensor`  | `measurement_03` (MotionDetected, intensity=1) |
-| `sensor_entrance` | `Sensor` | `MotionSensor`  | `measurement_04` (Motion, intensity=0) |
-| `sensor_bedroom` | `Sensor` | `TemperatureSensor`  | `measurement_05` (Temp, 19.5°C) |
-| `sensor_bathroom` | `Sensor` | `HumiditySensor`  | `measurement_06` (Humidity, 75%) |
+- `sensor_kitchen`
+- `sensor_livingroom`
+- `sensor_corridor`
+- `sensor_entrance`
+- `sensor_bedroom`
+- `sensor_bathroom`
+- `sensor_corridor_humidity`
 
 ### Actuators
 
-| Individual | Type | Status | Network |
-|---|---|---|---|
-| `thermostat_corridor` | `Thermostat` | `On` | WiFi |
-| `light_livingroom` | `SmartLight` | `On` | Zigbee |
-| `light_corridor` | `SmartLight` | `Off` → `InactiveDevice`  | Zigbee |
-| `light_entrance` | `SmartLight` | `On` | Zigbee |
-| `lock_backdoor` | `SmartLock` | `Off` → `InactiveDevice`  | Zigbee |
+- `thermostat_corridor`
+- `light_livingroom`
+- `light_corridor`
+- `light_entrance`
+- `lock_backdoor`
 
 ### Users
 
-| Individual | Asserted type | `hasAdminPrivilege` | Inferred type |
-|---|---|---|---|
-| `Admin` | `User` | `true` | `AdminUser`  |
-| `Guest` | `User` | `false` | `GuestUser`  |
+- `Admin`
+- `Guest`
+
+### Status values
+
+- `On`
+- `Off`
+- `Standby`
+
+### Networks
+
+- `home_wifi`
+- `home_zigbee`
+
+### Measurements
+
+- `measurement_01` to `measurement_07`
 
 ---
 
-## Reasoner Inferences (HermiT)
+## Reasoner results
 
-| Individual | Inferred fact | How |
-|---|---|---|
-| `sensor_kitchen/livingroom/bedroom` | `TemperatureSensor` | generates `TemperatureMeasurements` |
-| `sensor_corridor/entrance` | `MotionSensor` | generates `MotionMeasurements` |
-| `sensor_bathroom` | `HumiditySensor` | generates `HumidityMeasurements` |
-| `measurement_03` | `MotionDetectedMeasurements` | `hasMotionIntensity ≥ 1` |
-| `kitchen` | `DangerousRoom` | contains sensor → CriticalTemp via property chain |
-| all monitored rooms | `MonitoredRoom` | `isMonitoredBy some Sensor` |
-| `corridor` | `WellMonitoredRoom` | 2 sensors satisfy `isMonitoredBy min 2` |
-| `light_corridor`, `lock_backdoor` | `InactiveDevice` | `hasStatus value Off` |
-| `Admin` | `AdminUser` | controls + reads + `hasAdminPrivilege true` |
-| `Guest` | `GuestUser` | reads + `hasAdminPrivilege false` |
-| all devices | `ConnectedDevice` | `connectedTo some Network` |
+With HermiT, the ontology can infer for example:
 
----
-
-## Design Notes
-
-**Measurements as first-class objects.** Each measurement is an ABox individual, not a bare data value. This lets the reasoner classify rooms and sensors based on measurement content via the property chain.
-
-**User privilege via data property.** `hasAdminPrivilege` is used instead of negation (`not controls some Actuator`) because OWL's Open World Assumption makes negation-based definitions unreliable with HermiT.
-
-**Sensor type inferred, not asserted.** All sensors are typed only as `Sensor` in the ABox — their specific subtype is inferred entirely by the reasoner based on what they generate.
+- `sensor_kitchen`, `sensor_livingroom`, `sensor_bedroom` as `TemperatureSensor`
+- `sensor_corridor`, `sensor_entrance` as `MotionSensor`
+- `sensor_bathroom`, `sensor_corridor_humidity` as `HumiditySensor`
+- `measurement_03` as `MotionDetectedMeasurements` from `hasMotionIntensity >= 1`
+- `kitchen` as `DangerousRoom`
+- monitored rooms as `MonitoredRoom`
+- `corridor` as `WellMonitoredRoom`
+- `light_corridor` and `lock_backdoor` as `InactiveDevice`
+- `Admin` as `AdminUser`
+- `Guest` as `GuestUser`
+- devices connected to a network as `ConnectedDevice`
 
 ---
 
-## How to Run
+## Notes
 
-1. Open `IOT_complete.owx` in **Protégé 5.x**
-2. Go to **Reasoner → HermiT → Start Reasoner**
-3. Switch to the **Inferred** view in the Classes tab to verify automatic classifications
+A design choice in this ontology is to model measurements as individuals instead of plain values attached directly to rooms. This makes it easier to classify sensors, measurements, and rooms through reasoning.
+
+Another choice is to model user privileges with the boolean data property `hasAdminPrivilege`. This is simpler and more reliable than trying to define users only through negation under the Open World Assumption.
+
+Sensor subtypes are mostly left for the reasoner to infer from the type of measurement each sensor generates.
+
+---
+
+## How to run
+
+1. Open `IOT.owx` in **Protégé 5.x**
+2. Start **HermiT** from the Reasoner menu
+3. Check the **Inferred** view in the Classes tab
+4. You can also inspect inferred types for individuals in the Individuals tab
